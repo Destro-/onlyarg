@@ -1,3 +1,5 @@
+/* LuKks estuvo aqui. */
+
 #include <amxmodx>
 
 #define OA_UTIL_INC
