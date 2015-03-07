@@ -52,14 +52,14 @@ public clcmd_sayall(id)
 	if(!oa_has_access(id, ACCESS_CHAT))
 		return PLUGIN_CONTINUE
 	
-	static i, a, s, hud
-	a = i = 0
+	static i, icolor, start, hud
+	icolor = i = 0
 	
 	read_argv(1, g_buff, 5)
 	
 	while(g_buff[i] == '@') i++
 	if(!i || i > 3) return PLUGIN_CONTINUE
-	s = i
+	start = i
 
 	hud = get_free_hud(id)
 	if(hud == -1)
@@ -76,31 +76,31 @@ public clcmd_sayall(id)
 	g_hud[hud][HUD_TIME] = _:(get_gametime() + HUD_DISPLAY_TIME)
 	g_hud[hud][HUD_ADMIN] = id
 	
-	while(a < sizeof colors_key)
+	while(icolor < sizeof colors_key)
 	{
-		if(g_buff[i] == colors_key[a])
+		if(g_buff[i] == colors_key[icolor])
 		{
-			s++
+			start++
 			break
 		}
-		a++
+		icolor++
 	}
-	if(a == sizeof colors_key)
-		a = oa_acc_get_key(id, "admclr")
+	if(icolor == sizeof colors_key)
+		icolor = oa_acc_get_key(id, "admclr")
 
-	while(g_buff[s] && isspace(g_buff[s])) s++
+	while(g_buff[start] && isspace(g_buff[start])) start++
 	
 	read_args(g_buff, 127)
 	filter_buff(id)
 	
-	log_chat(id, "tsayall", g_buff[s])
-	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[s])
+	log_chat(id, "tsayall", g_buff[start])
+	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[start])
 	
 	new Float:verpos = hud_position[i][1]+hud/32.0
-	set_dhudmessage(colors_value[a][0], colors_value[a][1], colors_value[a][2], hud_position[i][0], verpos, 0, HUD_DISPLAY_TIME, HUD_DISPLAY_TIME, 0.5, 0.15)
+	set_dhudmessage(colors_value[icolor][0], colors_value[icolor][1], colors_value[icolor][2], hud_position[i][0], verpos, 0, HUD_DISPLAY_TIME, HUD_DISPLAY_TIME, 0.5, 0.15)
 	
-	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[s])
-	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[s])
+	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[start])
+	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[start])
 
 	return PLUGIN_HANDLED
 }
@@ -236,25 +236,31 @@ public concmd_tsay(id, level, cid)
 		return PLUGIN_HANDLED
 	}
 	
-	new cmd[6], icolor=-1, tsay
+	new cmd[6], icolor, tsay, start
 	read_argv(0, cmd, 5)
 	tsay = (cmd[4]=='t' || cmd[4]=='T')
 	
 	read_args(g_buff, 127)
 	remove_quotes(g_buff)
 	
-	if(g_buff[1] != ' ')
-		return PLUGIN_HANDLED
-	
-	for(new i; i < sizeof colors_key; i++)
+	if(g_buff[1] == ' ')
 	{
-		if(g_buff[0] == colors_key[i])
+		while(icolor < sizeof colors_key)
 		{
-			icolor = i
-			break
+			if(g_buff[0] == colors_key[icolor])
+			{
+				start = 2
+				break
+			}
+			icolor++
 		}
 	}
-	if(icolor==-1) icolor = charsmax(colors_key)
+	else {
+		icolor = sizeof colors_key
+	}
+
+	if(icolor == sizeof colors_key)
+		icolor = oa_acc_get_key(id, "admclr")
 	
 	filter_buff(id)
 	
@@ -262,14 +268,14 @@ public concmd_tsay(id, level, cid)
 	g_hud[hud][HUD_ADMIN] = id
 	
 
-	log_chat(id, "amx_tsay", g_buff[2])
-	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[2])
+	log_chat(id, "amx_tsay", g_buff[start])
+	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[start])
 	
 	new Float:verpos = (tsay ? 0.55 : 0.1)+hud/32.0
 	set_dhudmessage(colors_value[icolor][0], colors_value[icolor][1], colors_value[icolor][2], tsay ? 0.05 : -1.0, verpos, 0, HUD_DISPLAY_TIME, HUD_DISPLAY_TIME, 0.5, 0.15)
 	
-	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[2])
-	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[2])
+	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[start])
+	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[start])
 	
 	return PLUGIN_HANDLED
 }
