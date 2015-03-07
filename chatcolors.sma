@@ -6,7 +6,7 @@
 #include <onlyarg.inc>
 
 #define PLUGIN	"OA: ChatColor"
-#define VERSION	"1.1"
+#define VERSION	"1.2"
 #define AUTHOR	"Destro"
 /**********************************************/
 
