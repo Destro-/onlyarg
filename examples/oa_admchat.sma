@@ -236,13 +236,15 @@ public concmd_tsay(id, level, cid)
 		return PLUGIN_HANDLED
 	}
 	
-	new cmd[16], icolor=-1, tsay, start
-	read_argv(0, cmd, 15)
+	new cmd[6], icolor=-1, tsay
+	read_argv(0, cmd, 5)
 	tsay = (cmd[4]=='t' || cmd[4]=='T')
 	
-	read_argv(1, g_buff, 127)
+	read_args(g_buff, 127)
 	remove_quotes(g_buff)
-	start = strlen(g_buff)+1
+	
+	if(g_buff[1] != ' ')
+		return PLUGIN_HANDLED
 	
 	for(new i; i < sizeof colors_key; i++)
 	{
@@ -254,24 +256,20 @@ public concmd_tsay(id, level, cid)
 	}
 	if(icolor==-1) icolor = charsmax(colors_key)
 	
-	read_args(g_buff, 127)
 	filter_buff(id)
-	
-	if(strlen(g_buff) < 3)
-		return PLUGIN_HANDLED
 	
 	g_hud[hud][HUD_TIME] = _:(get_gametime() + HUD_DISPLAY_TIME)
 	g_hud[hud][HUD_ADMIN] = id
 	
 
-	log_chat(id, "amx_tsay", g_buff[start])
-	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[start])
+	log_chat(id, "amx_tsay", g_buff[2])
+	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[2])
 	
 	new Float:verpos = (tsay ? 0.55 : 0.1)+hud/32.0
 	set_dhudmessage(colors_value[icolor][0], colors_value[icolor][1], colors_value[icolor][2], tsay ? 0.05 : -1.0, verpos, 0, HUD_DISPLAY_TIME, HUD_DISPLAY_TIME, 0.5, 0.15)
 	
-	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[start])
-	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[start])
+	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[2])
+	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[2])
 	
 	return PLUGIN_HANDLED
 }
