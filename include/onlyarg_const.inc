@@ -4,13 +4,12 @@
 #define _onlyarg_const_included
 
 
-#define CMDTARGET_SELF			(1<<0)
-#define CMDTARGET_ONLY_ALIVE		(1<<1)
-#define CMDTARGET_ONLY_DEAD		(1<<2)
+#define CMDTARGET_ALLOW_SELF	(1<<0)
+#define CMDTARGET_ONLY_ALIVE	(1<<1)
+#define CMDTARGET_ONLY_DEAD	(1<<2)
 #define CMDTARGET_ONLY_REGISTER	(1<<3)
-#define CMDTARGET_ONLY_GUEST		(1<<4)
-#define CMDTARGET_SAMELEVEL		(1<<5)
-#define CMDTARGET_CHECKLEVEL		(1<<6)
+#define CMDTARGET_ONLY_GUEST	(1<<4)
+#define CMDTARGET_SAMELEVEL	(1<<5)
 
 #define ACCESS_ALL		0	/* everyone */
 #define ACCESS_RESERVATION	(1<<0)	/* flag "a" */

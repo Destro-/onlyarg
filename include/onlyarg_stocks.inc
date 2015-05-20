@@ -3,6 +3,19 @@
 #endif
 #define _onlyarg_stock_included
 
+/*
+# Registra un comando para admins
+*/
+stock oa_register_cmd(const name[], const func[], access=ACCESS_ALL, group=0, const info[], concmd=false)
+{
+	new _info[128]
+	_info[0] = 1+group
+	if(info[0]) copy(_info[1], 127, info)
+	
+	if(!concmd) return register_clcmd(name, func, access, _info, 0)
+	return register_concmd(name, func, access, _info, 0)
+}
+
 stock get_configsdir(name[],len)
 {
 	return get_localinfo("amxx_configsdir",name,len)

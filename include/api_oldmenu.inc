@@ -7,14 +7,14 @@
 	#include <fakemeta>
 #endif
 
-#define MAX_MENU_LEN 1024
-#define MAX_ITEM_LEN 256
+#define MAX_MENU_STRING 512
+#define MAX_ITEM_LEN 128
 
 stock const oldmenuhandler[] = "oldmenu_handler"
 
 enum _:_OLDMENU_DATA
 {
-	_MENU[MAX_MENU_LEN+1],
+	_MENU[MAX_MENU_STRING+1],
 	_FUNCID,
 	_KEYS,
 	_LEN,
@@ -34,10 +34,10 @@ stock oldmenu_create(const handler[], const title[], any:...)
 	if(title[0])
 	{
 		if(numargs() == 2)
-			g_oldmenu[_LEN] = formatex(g_oldmenu[_MENU], MAX_MENU_LEN, "%s^n^n", title)
+			g_oldmenu[_LEN] = formatex(g_oldmenu[_MENU], MAX_MENU_STRING, "%s^n^n", title)
 		else {
-			vformat(g_oldmenu[_MENU], MAX_MENU_LEN, title, 3)
-			g_oldmenu[_LEN] = add(g_oldmenu[_MENU], MAX_MENU_LEN, "^n^n")
+			vformat(g_oldmenu[_MENU], MAX_MENU_STRING, title, 3)
+			g_oldmenu[_LEN] = add(g_oldmenu[_MENU], MAX_MENU_STRING, "^n^n")
 		}
 	}
 	else g_oldmenu[_LEN] = 0
@@ -48,13 +48,13 @@ stock oldmenu_create(const handler[], const title[], any:...)
 
 stock oldmenu_additem(itemnum, value, const item[], any:...)
 {
-	new len = min(MAX_ITEM_LEN, MAX_MENU_LEN-g_oldmenu[_LEN])
+	new len = min(MAX_ITEM_LEN, MAX_MENU_STRING-g_oldmenu[_LEN])
 
 	if(numargs() == 3)
 		g_oldmenu[_LEN] += formatex(g_oldmenu[_MENU][g_oldmenu[_LEN]], len, "%s^n", item)
 	else {
 		vformat(g_oldmenu[_MENU][g_oldmenu[_LEN]], len, item, 4)
-		g_oldmenu[_LEN] = add(g_oldmenu[_MENU], MAX_MENU_LEN, "^n")
+		g_oldmenu[_LEN] = add(g_oldmenu[_MENU], MAX_MENU_STRING, "^n")
 	}
 	
 	if(itemnum != -1)

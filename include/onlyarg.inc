@@ -1,13 +1,4 @@
-#if defined _onlyarg_included
-  #endinput
-#endif
-#define _onlyarg_included
-
-/*****************************************************
-************* ONLY ARG - API v1.0.1 ******************
-*****************************************************/
-
-/* LIBRERIAS ==================*
+/* LIBRARYS ==================*
 
 //#define OA_MYSQL_INC
 //#define OA_SERVER_INC
@@ -27,7 +18,7 @@
 =============================================================================================================
 =============================================================================================================
 ===========================================================================================================*/
-#if defined OA_MYSQL_INC
+#if defined OA_MYSQL_INC && !defined ONLYARG_INC
 #pragma reqlib onlyarg_mysql
 #include <mysqlt>
 
@@ -45,7 +36,7 @@ forward fw_oa_mysql_connect(Handle:connection, errnum)
 =============================================================================================================
 =============================================================================================================
 ===========================================================================================================*/
-#if defined OA_SERVER_INC
+#if defined OA_SERVER_INC && !defined ONLYARG_INC
 #pragma reqlib onlyarg_server
 
 /*
@@ -62,16 +53,8 @@ forward fw_oa_server_index(serverid)
 =============================================================================================================
 =============================================================================================================
 ===========================================================================================================*/
-#if defined OA_UTIL_INC
+#if defined OA_UTIL_INC && !defined ONLYARG_INC
 #pragma reqlib onlyarg_util
-
-/*
-# Muestra un MOTD via web
-# 'title' titulo del motd
-# 'webfile' archivo/script en www.onlyarg.com/ingame/ (ejemplo: "csstats_top.php?sv=%d")
-*/
-native oa_motd(id, title[], webfile[], any:...)
-
 
 /*
 # Similar al chatcolor de ConnorMcLeod
@@ -86,21 +69,6 @@ native oa_chat_color(id, color=color_team, const msg[], any:...)
 */
 native oa_filter_print(string[], len, checkrange=true)
 
-/*
-# Filtra los insultos (puto, puta)
-# - 'mask' cantidad de insultos que se ocultan
-# - 'strict' activa el modo estricto. (se eliminan todos los caracteres que no sean letras y los numeros se reemplazan por letras (ejmp: 3=e, 1=i) detecta(put@,put0, etc))
-# return: devuelve '0' si no contiene insultos, '1' si se ocultaron los insultos, o '2' si contiene insultos sin ocultar
-*/
-native oa_filter_badwords(string[], mask=1, strict=0)
-
-/*
-# Filtra el spam (ip/muchos numeros/nombre de comunidades)
-# - 'mask' oculta el spam, -1 solo oculta numeros, 0 no oculta nada, otro numero positivo indica la cantidad de palabras que se ocultaran
-#         los numeros se olcultan si hay mas de 5 y menos de 9 numeros, con mas de 9 numeros se considera spam siempre y cuando 'mask' sea menor a 10 
-# return: devuelve '0' si no contiene spam, '1' si se oculto el spam, o '2' si contiene spam
-*/
-native oa_filter_spam(string[], mask=-1)
 
 /*
 # Cambia el equipo de un jugador usando el engine del CS (jointeam etc...)
@@ -161,7 +129,7 @@ stock get_user_hid(id, hid[], len)
 =============================================================================================================
 =============================================================================================================
 ===========================================================================================================*/
-#if defined OA_OLD_MENU_INC
+#if defined OA_OLD_MENU_INC && !defined ONLYARG_INC
 
 // https://amxmodx-es.com/Thread-API-OldMenu-1-1
 #include <api_oldmenu>
@@ -174,13 +142,13 @@ stock get_user_hid(id, hid[], len)
 =============================================================================================================
 =============================================================================================================
 ===========================================================================================================*/
-#if defined OA_ACC_INC
+#if defined OA_ACC_INC && !defined ONLYARG_INC
 #pragma reqlib onlyarg_acc
 
 /*
-# Muestra el menu de la cuenta
+# Muestra el menu principal
 */
-native oa_acc_menu(id)
+native oa_acc_mainmenu(id)
 
 /*
 # Inidica/comprueba si esta permitido jugar como invitado
@@ -237,7 +205,7 @@ forward fw_oa_acc_changename(id, const name[])
 =============================================================================================================
 ===========================================================================================================*/
 
-#if defined OA_ADM_INC
+#if defined OA_ADM_INC && !defined ONLYARG_INC
 #pragma reqlib onlyarg_adm
 
 /*
@@ -261,13 +229,12 @@ native oa_cmd_access(id, cid, num=0, access=-1, group=-1, silent=false)
 # Busca un jugador como objetivo dado al argumento dado
 # - 'arg' puede el el nombre,parte del nombre, el userid o la ip.
 # FLAGS:
-- CMDTARGET_SELF		: Permite invluirse a uno mismo en la busqueda
-- CMDTARGET_ONLY_ALIVE		: Solo jugadores vivos
-- CMDTARGET_ONLY_DEAD		: Solo jugadores muertos
-- CMDTARGET_ONLY_REGISTER	: Solo jugadores registrados
-- CMDTARGET_ONLY_GUEST		: Solo invitados
-- CMDTARGET_SAMELEVEL		: Jugadores que tengan el mismo nivel de acceso (omitir inmunidad para el mismo nivel)
-- CMDTARGET_CHECKLEVEL		: Comprueba que el jugador tenga un nivel inferior de acceso (sin inmunidad)
+- CMDTARGET_ALLOW_SELF
+- CMDTARGET_ONLY_ALIVE
+- CMDTARGET_ONLY_DEAD
+- CMDTARGET_ONLY_REGISTER
+- CMDTARGET_ONLY_GUEST
+- CMDTARGET_SAMELEVEL
 */
 native oa_cmd_target(id, const arg[], flags)
 
@@ -312,17 +279,6 @@ native oa_admin_openmenu(id)
 native oa_admin_add_item(const itemname[], access=ACCESS_ANY_ADM, group=0, color=0)
 
 /*
-# Logea acciones de un admin hacia un jugador
-*/
-native log_admin_to(admin, target, action[], info[]="", any:...)
-
-
-/*
-# Logea acciones de un admin
-*/
-native log_admin(admin, info[]="", any:...)
-
-/*
 # Forward llamada cuando hay algun cambio en los accesos de un jugador
 */
 forward fw_oa_admin_update(id, access, group)
@@ -332,21 +288,10 @@ forward fw_oa_admin_update(id, access, group)
 # Forward llamada cuando cuando se selecciona una opcion del admin menu
 */
 forward fw_oa_admin_itemselect(id, itemid)
-
-
-/*
-# Registra un comando para admins
-*/
-stock oa_register_cmd(const name[], const func[], access=ACCESS_ALL, group=0, const info[], concmd=false)
-{
-	new _info[128]
-	_info[0] = 1+group
-	if(info[0]) copy(_info[1], 127, info)
-	
-	if(!concmd) return register_clcmd(name, func, access, _info, 0)
-	return register_concmd(name, func, access, _info, 0)
-}
 #endif
+
+
+#define ONLYARG_INC
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang11274\\ f0\\ fs16 \n\\ par }
 */
