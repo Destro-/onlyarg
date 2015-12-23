@@ -63,8 +63,8 @@ public client_putinserver(id)
 
 public hook_say(id)
 {
-	rtn = read_say(id)
-	if(rtn) return PLUGIN_HANDLED
+	if(read_say(id))
+		return PLUGIN_HANDLED
 	
 	if(g_group[id] && g_access[id] & ACCESS_CHAT && ~g_access[id] & ACCESS_HIDDEN)
 	{
@@ -77,21 +77,17 @@ public hook_say(id)
 	}
 	wrap_msg()
 	
-	if(listen == 1)
+	for(new pl=1; pl <= g_maxplayers; pl++ )
 	{
-		for(new pl=1; pl <= g_maxplayers; pl++ )
-		{
-			if(!is_user_connected(pl))
-				continue
+		if(!is_user_connected(pl))
+			continue
 				
-			if((listen && g_access[pl] & ACCESS_CHAT && listen_group >= g_group[pl])
-			|| listen == 2 || is_user_alive(pl) == alive)
-			{
-				send_msg(pl, id)
-			}
+		if((listen && g_access[pl] & ACCESS_CHAT && listen_group >= g_group[pl])
+		|| listen == 2 || is_user_alive(pl) == alive)
+		{
+			send_msg(pl, id)
 		}
 	}
-	else send_msg(0, id)
 
 	log_chat("say", msg)
 	return PLUGIN_HANDLED_MAIN
@@ -99,8 +95,8 @@ public hook_say(id)
 
 public hook_sayteam(id)
 {
-	rtn = read_say(id)
-	if(rtn) return PLUGIN_HANDLED
+	if(read_say(id))
+		return PLUGIN_HANDLED
 	
 	static const team_name[][] = { "Uniendose", "Terrorista", "Anti-Terrorista", "Espectador" }
 	new team = oa_get_user_team(id)
@@ -149,7 +145,7 @@ stock read_say(id)
 		static systime
 		
 		systime = get_systime()
-		
+
 		rtn = oa_filter_badwords(msg, (g_warning[id]>5)?0:2, (g_warning[id]>2)?2:g_warning[id])
 		if(rtn)
 		{
@@ -234,3 +230,6 @@ stock log_chat(type[], msg[])
 	
 	log_to_file(filename, "(%s) %s", type, msg)
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang11274\\ f0\\ fs16 \n\\ par }
+*/
