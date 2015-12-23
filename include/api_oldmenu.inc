@@ -11,6 +11,7 @@
 #define MAX_ITEM_LEN 128
 
 stock const oldmenuhandler[] = "oldmenu_handler"
+stock const oldmenulog[] = "oldmenu.log"
 
 enum _:_OLDMENU_DATA
 {
@@ -19,6 +20,7 @@ enum _:_OLDMENU_DATA
 	_KEYS,
 	_LEN,
 	_ITEMS[10],
+	_MENUID
 }
 
 stock g_oldmenu[_OLDMENU_DATA]
@@ -26,7 +28,21 @@ stock g_olmenu_player[33][12]
 
 stock oldmenu_register()
 {
-	register_menucmd(register_menuid(oldmenuhandler, 0), 1023, oldmenuhandler)
+	g_oldmenu[_MENUID] = register_menuid(oldmenuhandler, 0)
+	register_menucmd(g_oldmenu[_MENUID], 1023, oldmenuhandler)
+}
+
+stock oldmenu_current_menu(id)
+{
+	new menu, newmenu
+	player_menu_info(id, menu, newmenu, _)
+	
+	if(newmenu != -1 || (menu && menu != g_oldmenu[_MENUID]))
+		return -1
+	if(menu < 1)
+		return 0
+	
+	return (g_olmenu_player[id][10] + 1)
 }
 
 stock oldmenu_create(const handler[], const title[], any:...)
@@ -44,6 +60,10 @@ stock oldmenu_create(const handler[], const title[], any:...)
 	
 	g_oldmenu[_KEYS] = 0
 	g_oldmenu[_FUNCID] = get_func_id(handler)
+	if(g_oldmenu[_FUNCID] == -1)
+		log_to_file(oldmenulog, "public %s() is invalid", handler)
+		
+	return (g_oldmenu[_FUNCID] + 1)
 }
 
 stock oldmenu_additem(itemnum, value, const item[], any:...)
@@ -69,6 +89,9 @@ stock oldmenu_additem(itemnum, value, const item[], any:...)
 
 stock oldmenu_display(id, page=1, display_time=-1)
 {
+	if(g_oldmenu[_LEN] >= MAX_MENU_STRING)
+		log_to_file(oldmenulog, "WARNING: Length of the menu exceeds MAX_MENU_STRING(%d)", MAX_MENU_STRING)
+	
 	if(!id)
 	{
 		new players[32], count, k
@@ -97,8 +120,8 @@ stock oldmenu_display(id, page=1, display_time=-1)
 stock fix_pdata_menu(id)
 {
 	// m_iMenu: 205 -- OFFSET_LINUX: 5
-	if(pev_valid(id) == 2) set_pdata_int(id, 205, 0, 5)
-	
+	if(pev_valid(id) == 2)
+		set_pdata_int(id, 205, 0, 5)
 }
 
 public oldmenu_handler(id, key)
@@ -165,6 +188,3 @@ stock oldmenu_pagination_y(page, maxpages, addspace=true)
 	
 	oldmenu_additem(0, 0, "\r0. \ySalir")
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang11274\\ f0\\ fs16 \n\\ par }
-*/

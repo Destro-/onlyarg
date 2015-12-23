@@ -3,17 +3,12 @@
 #endif
 #define _onlyarg_stock_included
 
-/*
-# Registra un comando para admins
-*/
-stock oa_register_cmd(const name[], const func[], access=ACCESS_ALL, group=0, const info[], concmd=false)
+stock oa_register_plugin(plugin[], version[], author[])
 {
-	new _info[128]
-	_info[0] = 1+group
-	if(info[0]) copy(_info[1], 127, info)
+	new v[12]
+	formatex(v, 11, "%s-%s", OA_API_VERSION, version)
 	
-	if(!concmd) return register_clcmd(name, func, access, _info, 0)
-	return register_concmd(name, func, access, _info, 0)
+	register_plugin(plugin, v, author)
 }
 
 stock get_configsdir(name[],len)
