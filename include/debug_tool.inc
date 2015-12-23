@@ -52,7 +52,7 @@
 			log_to_file(debug_file, "*DEBUG: -gametime: (%.3f)  |  -info[%s]", _gametime, _debug_buff[slot])
 		}
 	}
-	stock _debug_draw(max_calls=_DEBUG_CALLS, same_frames=true)
+	stock _debug_draw(max_calls=_DEBUG_CALLS, same_frame=true)
 	{
 		_gametime = get_gametime()
 		
@@ -75,7 +75,7 @@
 		if(slot < 0) slot += _debug_size
 		_lastcall_time = _debug_time[slot]
 		
-		if(same_frames)
+		if(same_frame)
 			log_to_file(debug_file, "# Time Difference: (%dms) - fix[%.4f] - [%f] vs - [%f]", floatround((_gametime - _lastcall_time) * 1000.0), (_gametime - _lastcall_time), _gametime, _lastcall_time)
 		
 		for(new count=1; count <= _max; count++)
@@ -83,7 +83,7 @@
 			slot = _debug_start - count
 			if(slot < 0) slot += _debug_size
 			
-			if(same_frames)
+			if(same_frame)
 			{
 				if(_lastcall_time != _debug_time[slot])
 					break
