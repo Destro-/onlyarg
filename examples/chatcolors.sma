@@ -1,35 +1,39 @@
-/* LuKks estuvo aqui. */
-
 #include <amxmodx>
 
 #define OA_UTIL_INC
 #define OA_ADM_INC
 #define OA_ACC_INC
-#include <onlyarg.inc>
+#include <onlyarg>
 
 #define PLUGIN	"OA: ChatColor"
-#define VERSION	"1.2"
+#define VERSION	"1.12"
 #define AUTHOR	"Destro"
 /**********************************************/
 
 new const group_name[][] = { "Owner", "Super Mod", "Supervisor", "Admin", "Vip" }
 
-new msg[192], send_buff[2][96], alive, listen, rtn
-new cvar_listen, g_maxplayers
+new msg[192], send_buff[2][98], alive, listen, listen_group, rtn
+new cvar_listen, cvar_group, g_maxplayers
 
 new g_name[33][32], g_group[33], g_access[33], g_warning[33], g_lastwarning[33]
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
-	
-	register_message(get_user_msgid ("SayText"), "message_saytext")
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	/*
-	- 0 desactivado (solo se comprueban insultos)
+	- 0 normal (se bloquean insultos y agregan los prefijos de grupos)
 	- 1 los admins leen los mensajes de todos
 	- 2 +los jugadores se leen entre vivos&muertos */
 	cvar_listen = register_cvar("amx_chatlisten", "1")
+	
+	/*
+	- 1 owner
+	- 2 super mod
+	- 3 supervisor
+	- 4 admin
+	- 5 vip */
+	cvar_group = register_cvar("amx_chatgroup", "5")
 	
 	g_maxplayers = get_maxplayers()
 }
@@ -57,15 +61,10 @@ public client_putinserver(id)
 	g_lastwarning[id] = 0
 }
 
-public message_saytext(msgid, msgdest, id)
-{
-	return PLUGIN_HANDLED
-}
-
 public hook_say(id)
 {
 	rtn = read_say(id)
-	if(rtn) return rtn-1
+	if(rtn) return PLUGIN_HANDLED
 	
 	if(g_group[id] && g_access[id] & ACCESS_CHAT && ~g_access[id] & ACCESS_HIDDEN)
 	{
@@ -85,8 +84,11 @@ public hook_say(id)
 			if(!is_user_connected(pl))
 				continue
 				
-			if(g_access[pl] & ACCESS_CHAT || is_user_alive(pl) == alive)
+			if((listen && g_access[pl] & ACCESS_CHAT && listen_group >= g_group[pl])
+			|| listen == 2 || is_user_alive(pl) == alive)
+			{
 				send_msg(pl, id)
+			}
 		}
 	}
 	else send_msg(0, id)
@@ -98,7 +100,7 @@ public hook_say(id)
 public hook_sayteam(id)
 {
 	rtn = read_say(id)
-	if(rtn) return rtn-1
+	if(rtn) return PLUGIN_HANDLED
 	
 	static const team_name[][] = { "Uniendose", "Terrorista", "Anti-Terrorista", "Espectador" }
 	new team = oa_get_user_team(id)
@@ -119,8 +121,11 @@ public hook_sayteam(id)
 		if(!is_user_connected(pl))
 			continue
 				
-		if((listen && g_access[pl] & ACCESS_CHAT) || ((alive == 2 || is_user_alive(pl) == alive) && oa_get_user_team(pl) == team))
+		if((listen && g_access[pl] & ACCESS_CHAT && listen_group >= g_group[pl])
+		|| ((listen == 2 || is_user_alive(pl) == alive) && oa_get_user_team(pl) == team))
+		{
 			send_msg(pl, id)
+		}
 	}
 
 	log_chat("say_team", msg)
@@ -131,10 +136,13 @@ stock read_say(id)
 {
 	read_args(msg, charsmax(msg))
 	
-	if(!msg[0]) return PLUGIN_HANDLED+1
+	if(!msg[0]) return 1
 	
 	remove_quotes(msg)
 	oa_filter_print(msg, charsmax(msg))
+	replace_all(msg, charsmax(msg), "!g", "g")
+	replace_all(msg, charsmax(msg), "!y", "y")
+	replace_all(msg, charsmax(msg), "!t", "t")
 	trim(msg)
 
 	if(!msg[0]) return PLUGIN_HANDLED+1
@@ -145,7 +153,7 @@ stock read_say(id)
 		
 		systime = get_systime()
 		
-		rtn = oa_filter_badwords(msg, (g_warning[id]>5)?0:2, (g_warning[id]>2)?2:g_warning[id]?1:0)
+		rtn = oa_filter_badwords(msg, (g_warning[id]>5)?0:2, (g_warning[id]>2)?2:g_warning[id])
 		if(rtn)
 		{
 			if(g_warning[id] < 10) g_warning[id]++
@@ -154,7 +162,7 @@ stock read_say(id)
 			if(rtn == 2)
 			{
 				oa_chat_color(id, _, "!g- !yEl mensaje fue bloqueado por considerarse un insulto")
-				return PLUGIN_HANDLED+1
+				return 1
 			}
 			
 			client_print(id, print_center, "Mensaje censurado por contener insulto(s)")
@@ -170,16 +178,16 @@ stock read_say(id)
 			if(rtn == 2)
 			{
 				oa_chat_color(id, _, "!g- !yEl mensaje fue bloqueado por considerarse spam")
-				return PLUGIN_HANDLED+1
+				return 1
 			}
 			
 			client_print(id, print_center, "Mensaje censurado por contener spam")
 		}
 	}
 	
-	listen = get_pcvar_num(cvar_listen)
-	if(listen < 1) return PLUGIN_CONTINUE+1
-
+	listen = clamp(get_pcvar_num(cvar_listen), 0, 2)
+	listen_group = clamp(get_pcvar_num(cvar_group), ACCESS_GROUP_OWNER, ACCESS_GROUP_VIP)
+	
 	alive = is_user_alive(id)
 	
 	return 0
@@ -189,8 +197,19 @@ stock wrap_msg()
 {
 	if(strlen(msg) > 95)
 	{
-		formatex(send_buff[0], 95, "%s..", msg)
-		formatex(send_buff[1], 95, "..%s", msg[95])
+		new cut = 95
+		for(new i=95; i > 80; i--)
+		{
+			if(msg[i] == ' ')
+			{
+				cut = i+1
+				break
+			}
+		}
+		
+		copy(send_buff[0], cut, msg)
+		add(send_buff[0], charsmax(send_buff[]), "..")
+		formatex(send_buff[1], charsmax(send_buff[]), "..%s", msg[cut])
 	}
 	else {
 		copy(send_buff[0], 95, msg)

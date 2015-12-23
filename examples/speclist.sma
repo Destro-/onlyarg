@@ -20,7 +20,7 @@ new g_maxplayers, g_HudSync
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_event("SpecHealth2", "spec_target", "bd")
 	

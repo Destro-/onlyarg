@@ -7,7 +7,7 @@
 #include <onlyarg.inc>
 
 #define PLUGIN	"OA: Anti AFK"
-#define VERSION	"1.0"
+#define VERSION	"1.1"
 #define AUTHOR	"Destro"
 /**********************************************/
 
@@ -26,7 +26,7 @@ new g_is_connected[33]
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_event("HLTV", "event_round_start", "a", "1=0", "2=0")
 	
@@ -55,15 +55,15 @@ public event_round_start()
 
 public client_disconnect(id)
 {
-	g_is_connected[id] = 0
+	g_is_connected[id] = false
 }
 
 public client_putinserver(id)
 {
-	if(is_user_bot(id))
+	if(is_user_bot(id) || is_user_hltv(id))
 		return
 
-	g_is_connected[id] = 1
+	g_is_connected[id] = true
 	cs_set_user_lastactivity(id, get_gametime())
 }
 

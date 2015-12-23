@@ -25,7 +25,7 @@ const Float:flood_time = 3.5
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	static const radio_cmds[][] = {
 		"radio1", "coverme", "takepoint", "holdpos", "regroup", "followme", "takingfire",

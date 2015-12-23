@@ -1,28 +1,29 @@
 #include <amxmodx>
 
 #define OA_UTIL_INC
+#define OA_SXEI_INC
 #define OA_ADM_INC
 #define OA_ACC_INC
 #include <onlyarg>
 
-#define PLUGIN	"OA: Adm CMD"
-#define VERSION	"1.0.1"
+#define PLUGIN	"OA: Admin CMD"
+#define VERSION	"1.12"
 #define AUTHOR	"Destro"
 /**********************************************/
 
-new g_name[33][32], g_hid[33][10]
+new g_name[33][32]
 new g_maxplayers
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 
 	oa_register_cmd("amx_kick", "cmd_kick", ACCESS_KICK, _, "<nombre o #userid> [razon]", true)
 	oa_register_cmd("amx_slay", "cmd_slay", ACCESS_SLAY, _, "<nombre o #userid>", true)
 	oa_register_cmd("amx_slap", "cmd_slap", ACCESS_SLAP, _, "<nombre o #userid> [daño]", true)
 	oa_register_cmd("amx_leave", "cmd_leave", ACCESS_KICK, ACCESS_GROUP_SUPERVISOR, "<tag> [tag] [tag] [tag]", true)
 	oa_register_cmd("amx_cvar", "cmd_cvar", ACCESS_CVAR, _, "<cvar> [valor]", true)
-	oa_register_cmd("amx_plugins", "cmd_plugins", ACCESS_ANY_ADM, _, "- Muestra todos los plugins", true)
+	oa_register_cmd("amx_plugins", "cmd_plugins", ACCESS_ALL, _, "- Muestra todos los plugins", true)
 	oa_register_cmd("amx_modules", "cmd_modules", ACCESS_PLUGIN, ACCESS_GROUP_SMOD, "- Muestra todos los modulos", true)
 	oa_register_cmd("amx_map", "cmd_map", ACCESS_MAP, _, "<mapname>", true)
 	oa_register_cmd("amx_cfg", "cmd_cfg", ACCESS_CFG, _, "<filename>", true)
@@ -35,11 +36,6 @@ public plugin_init()
 public fw_oa_acc_changename(id, const name[])
 {
 	copy(g_name[id], 31, name)
-}
-
-public client_connect(id)
-{
-	get_user_hid(id, g_hid[id], 9)
 }
 
 /*** ADMIN CMDs ***********************************************************************************/
@@ -250,14 +246,7 @@ public cmd_plugins(id, level, cid)
 		return PLUGIN_HANDLED
 	}
 
-	new name[32], version[32], author[32], filename[32], status[32]
-	new lName[32], lVersion[32], lAuthor[32], lFile[32], lStatus[32]
-
-	format(lName, 31, "nombre")
-	format(lVersion, 31, "version")
-	format(lAuthor, 31, "autor")
-	format(lFile, 31, "archivo")
-	format(lStatus, 31, "estado")
+	new name[32], version[12], author[32], filename[32], status[16], vAPI[6], pos
 
 	new temp[96], StartPLID, EndPLID, num, running
 
@@ -266,27 +255,37 @@ public cmd_plugins(id, level, cid)
 	{
 		read_argv(1, temp, charsmax(temp))
 		StartPLID = str_to_num(temp)-1
+		StartPLID = clamp(StartPLID, 0, num-1)
 	}
-
+	
 	EndPLID = min(StartPLID + 10, num)
 	
-	console_print(id, "----- Plugins cargados actualmente -----")
-	console_print(id, "%-18.17s %-11.10s %-17.16s %-16.15s %-9.8s", lName, lVersion, lAuthor, lFile, lStatus)
+	console_print(id, "-------- Plugins cargados actualmente:")
+	console_print(id, "%-7s %-7s %-9s %-17.16s %-27.22s %-16.15s %-9.8s", "#", "API", "Version", "Autor", "Nombre", "Archivo", "Estado")
 
 	new i = StartPLID
 	while(i <EndPLID)
 	{
-		get_plugin(i++, filename, 31, name, 31, version, 31, author, 31, status, 31)
-		console_print(id, "%-18.17s %-11.10s %-17.16s %-16.15s %-9.8s", name, version, author, filename, status)
+		get_plugin(i++, filename, 31, name, 31, version, 11, author, 31, status, 15)
 		
-		if (status[0]=='d' || status[0]=='r')
+		pos = contain(version, "-") + 1
+		if(pos) copy(vAPI, pos - 1, version)
+		else	copy(vAPI, 5, " --  ")
+
+
+		console_print(id, "[%02d]   %-9s %-11s %-17.16s %-21.20s %-16.15s %-9.8s", i, vAPI, version[pos], author, name, filename, status)
+		
+		if(status[0]=='d' || status[0]=='r')
 			running++
 	}
-	console_print(id, "%d plugins, %d en ejecucion", EndPLID-StartPLID, running)
-	console_print(id, "Entradas %d - %d de %d", StartPLID + 1,EndPLID, num)
 	
-	if(EndPLID < num) console_print(id, "Use 'amx_plugin %d' para ver mas plugins", EndPLID + 1)
-	else console_print(id, "Escribe 'amx_plugin 1' para volver al principio")
+	console_print(id, "-----------------------------------------")
+	console_print(id, "[ %d plugins, %d en ejecucion ]", EndPLID-StartPLID, running)
+	console_print(id, "Entradas: %d..%d de %d", StartPLID + 1,EndPLID, num)
+	
+	if(EndPLID < num) console_print(id, "Escribe 'amx_plugin %d' para ver mas plugins", EndPLID + 1)
+	else console_print(id, "Escribe 'amx_plugin' para volver al principio^n")
+	
 
 	return PLUGIN_HANDLED
 }
@@ -296,26 +295,24 @@ public cmd_modules(id, level, cid)
 	if(!oa_cmd_access(id, cid, 0))
 		return PLUGIN_HANDLED
 
-	new name[32], version[32], author[32], status, sStatus[16]
-	new lName[32], lVersion[32], lAuthor[32], lStatus[32];
-
-	format(lName, 31, "nombre")
-	format(lVersion, 31, "version")
-	format(lAuthor, 31, "autor")
-	format(lStatus, 31, "estado")
+	new name[32], version[10], author[32], status, sStatus[16], running
 
 	new num = get_modulesnum()
 	
-	console_print(id, "Modulos cargados actualmente:")
-	console_print(id, "%-23.22s %-11.10s %-20.19s %-11.10s", lName, lVersion, lAuthor, lStatus)
+	console_print(id, "-------- Modulos cargados actualmente:")
+	console_print(id, "%-7s %-23.22s %-11.10s %-20.19s %-11.10s", "#", "Nombre", "Version", "Autor", "Estado")
 	
-	for (new i = 0; i < num; i++)
+	for(new i = 0; i < num; i++)
 	{
-		get_module(i, name, 31, author, 31, version, 31, status)
+		get_module(i, name, 31, author, 31, version, 9, status)
 		
-		switch (status)
+		switch(status)
 		{
-			case module_loaded: copy(sStatus, 15, "running")
+			case module_loaded:
+			{
+				copy(sStatus, 15, "running")
+				running++
+			}
 			default: 
 			{
 				copy(sStatus, 15, "bad load")
@@ -325,9 +322,11 @@ public cmd_modules(id, level, cid)
 			}
 		}
 		
-		console_print(id, "%-23.22s %-11.10s %-20.19s %-11.10s", name, version, author, sStatus)
+		console_print(id, "[%02d]   %-23.22s %-11.10s %-20.19s %-11.10s", i+1, name, version, author, sStatus)
 	}
-	console_print(id, "%d modulos", num)
+
+	console_print(id, "[ %d modulos detectados, %d en ejecucion ]^n", num, running)
+
 
 	return PLUGIN_HANDLED
 }
@@ -448,3 +447,6 @@ stock get_cmd(cid, command[], maxlen1, info[], maxlen2, &access, &group, id=1)
 	
 	return result
 }
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang11274\\ f0\\ fs16 \n\\ par }
+*/

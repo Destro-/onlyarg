@@ -6,7 +6,7 @@
 #include <onlyarg>
 
 #define PLUGIN	"OA: Admin Chat"
-#define VERSION	"1.0.3"
+#define VERSION	"1.12"
 #define AUTHOR	"Destro"
 /**********************************************/
 
@@ -30,7 +30,7 @@ new g_name[33][32]
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_clcmd("say", "clcmd_sayall", ACCESS_CHAT, "@[@|@|@][w|r|g|b|y|m|c]<mensaje> - Muestra un hudmessage a todos", 0)
 	register_clcmd("say_team", "clcmd_sayadmin", 0, "@<mensaje> - Envia un mensaje a todos los admins", 0)
@@ -236,15 +236,17 @@ public concmd_tsay(id, level, cid)
 		return PLUGIN_HANDLED
 	}
 	
-	new temp[6], icolor, tsay
+	new icolor, tsay
 	
-	read_argv(0, temp, 5)
-	tsay = (temp[4]=='t' || temp[4]=='T')
+	read_argv(0, g_buff, 5)
+	tsay = (g_buff[4]=='t' || g_buff[4]=='T')
 	
-	read_argv(1, temp, 5)
+	read_args(g_buff, 127)
+	filter_buff(id)
+	
 	while(icolor < sizeof colors_key)
 	{
-		if(temp[0] == colors_key[icolor])
+		if(g_buff[0] == colors_key[icolor])
 			break
 
 		icolor++
@@ -252,20 +254,17 @@ public concmd_tsay(id, level, cid)
 	if(icolor == sizeof colors_key)
 		icolor = oa_acc_get_key(id, "admclr")
 	
-	read_argv(2, g_buff, 127)
-	filter_buff(id)
-	
 	g_hud[hud][HUD_TIME] = _:(get_gametime() + HUD_DISPLAY_TIME)
 	g_hud[hud][HUD_ADMIN] = id
 
-	log_chat(id, "amx_tsay", g_buff)
-	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff)
+	log_chat(id, "amx_tsay", g_buff[2])
+	log_message("^"%s^" amx_tsay (text ^"%s^")", g_name[id], g_buff[2])
 	
 	new Float:verpos = (tsay ? 0.55 : 0.1)+hud/32.0
 	set_dhudmessage(colors_value[icolor][0], colors_value[icolor][1], colors_value[icolor][2], tsay ? 0.05 : -1.0, verpos, 0, HUD_DISPLAY_TIME, HUD_DISPLAY_TIME, 0.5, 0.15)
 	
-	show_dhudmessage(0, "%s: %s", g_name[id], g_buff)
-	client_print(0, print_notify, "%s: %s", g_name[id], g_buff)
+	show_dhudmessage(0, "%s: %s", g_name[id], g_buff[2])
+	client_print(0, print_notify, "%s: %s", g_name[id], g_buff[2])
 	
 	return PLUGIN_HANDLED
 }

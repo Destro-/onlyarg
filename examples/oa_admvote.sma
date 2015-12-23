@@ -1,13 +1,14 @@
 #include <amxmodx>
 
 #define OA_UTIL_INC
+#define OA_SXEI_INC
 #define OA_OLD_MENU_INC
 #define OA_ADM_INC
 #define OA_ACC_INC
 #include <onlyarg>
 
 #define PLUGIN	"OA: Adm Vote"
-#define VERSION	"1.0.1"
+#define VERSION	"1.12"
 #define AUTHOR	"Destro"
 /**********************************************/
 
@@ -46,11 +47,11 @@ new g_votekick_target[2]
 
 public g_vote_extern = 0
 
-new g_name[33][32], g_hid[33][10]
+new g_name[33][32]
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 
 	oa_register_cmd("amx_votemap", "cmd_votemap", ACCESS_VOTE|ACCESS_MAP, _, "<map> [map] [map] [map]", true)
 	oa_register_cmd("amx_votekick", "cmd_votekick", ACCESS_VOTE|ACCESS_KICK, _, "<nombre o #userid>", true)
@@ -65,11 +66,6 @@ public fw_oa_acc_changename(id, const name[])
 	copy(g_name[id], 31, name)
 }
 
-public client_connect(id)
-{
-	get_user_hid(id, g_hid[id], 9)
-}
-	
 public client_disconnect(id)
 {
 	if(g_vote_admin == id)

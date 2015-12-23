@@ -8,7 +8,7 @@
 #include <onlyarg>
 
 #define PLUGIN	"OA: Redirec"
-#define VERSION	"1.0.2"
+#define VERSION	"1.12"
 #define AUTHOR	"Destro"
 /**********************************************/
 
@@ -39,7 +39,7 @@ new Handle:g_Connection, g_Query[180]
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 		
 	register_clcmd("say /server", "show_menu_redirec")
 	register_clcmd("say_team /server", "show_menu_redirec")
@@ -97,7 +97,7 @@ public client_connect(id)
 	if(oa_has_access(id, ACCESS_RESERVATION))
 		return
 
-	if(get_playersnum(1) < (g_maxplayers-2) || !random_num(0, 10))
+	if(get_playersnum(1) < (g_maxplayers-2) || (random_num(0, 10) < 4))
 		return
 		
 	sv = random_num(0, g_count-1)

@@ -8,7 +8,7 @@
 #include <onlyarg.inc>
 
 #define PLUGIN	"OA: Retrict Weapons"
-#define VERSION	"1.0.0"
+#define VERSION	"1.0"
 #define AUTHOR	"Destro"
 /**********************************************/
 
@@ -132,11 +132,11 @@ new admin_item
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 	
 	register_clcmd("menuselect", "clcmd_menuselect") 
 	
-	admin_item = oa_admin_add_item("Restringir arma", ACCESS_CVAR)
+	admin_item = oa_admin_add_item("Restringir arma", ACCESS_CVAR, ACCESS_GROUP_SMOD)
 	
 	load_retrict()
 	
@@ -202,6 +202,8 @@ public menu_weapons(id, itemnum, value, page)
 	
 	new w = g_items[value][0]
 	g_retrict[w] = !(g_retrict[w])
+	
+	log_admin(id, "RetricWeapon: Weapon:[%s] - Retric:[%d]", g_retrict[w], g_items_names[g_items[w][0]])
 	
 	show_menu_weapons(id, page)
 }

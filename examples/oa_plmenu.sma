@@ -1,13 +1,14 @@
 #include <amxmodx>
 
 #define OA_UTIL_INC
+#define OA_SXEI_INC
 #define OA_OLD_MENU_INC
 #define OA_ADM_INC
 #define OA_ACC_INC
 #include <onlyarg>
 
 #define PLUGIN	"OA: Adm PlayersMenu"
-#define VERSION	"1.0.1"
+#define VERSION	"1.12"
 #define AUTHOR	"Destro"
 /**********************************************/
 
@@ -16,11 +17,10 @@ enum {
 	MENU_SLAY,
 	MENU_SLAP,
 	MENU_TEAM,
-	MENU_SCREEN,
 	MAX_MENU
 }
-new const menu_name[MAX_MENU][] = { "Kick", "Slay", "Slap", "Team", "ScreenShot" }
-new const menu_option[MAX_MENU] = { false, false, true, true, false }
+new const menu_name[MAX_MENU][] = { "Kick", "Slay", "Slap", "Team" }
+new const menu_option[MAX_MENU] = { false, false, true, true }
 new admin_item[MAX_MENU]
 
 new const slap_damage[7] = { 0, 1, 5, 10, 20, 40, 80 }
@@ -33,18 +33,16 @@ new g_name[33][32], g_hid[33][10]
 
 public plugin_init()
 {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
+	oa_register_plugin(PLUGIN, VERSION, AUTHOR)
 
 	oa_register_cmd("amx_kickmenu", "cmd_kickmenu", ACCESS_KICK, _, "- Menu de Kick")
 	oa_register_cmd("amx_slaymenu", "cmd_slaymenu", ACCESS_SLAY, _, "- Menu de Slay")
 	oa_register_cmd("amx_slapmenu", "cmd_slapmenu", ACCESS_SLAP, _, "- Menu de Slap")
 	oa_register_cmd("amx_teammenu", "cmd_teammenu", ACCESS_TEAM, _, "- Menu de transferencia de equipo")
-	oa_register_cmd("amx_sxe_screen", "cmd_screenmenu", ACCESS_ANY_ADM, _, "- Menu de ScreenShot")
 	
 	admin_item[MENU_KICK] = oa_admin_add_item("Expulsar", ACCESS_KICK)
 	admin_item[MENU_SLAY] = oa_admin_add_item("Matar", ACCESS_SLAY)
 	admin_item[MENU_SLAP] = oa_admin_add_item("Abofetear", ACCESS_SLAP)
-	admin_item[MENU_SCREEN] = oa_admin_add_item("sXe ScreenShot", ACCESS_ANY_ADM)
 	admin_item[MENU_TEAM] = oa_admin_add_item("Cambiar team", ACCESS_TEAM)
 
 	oldmenu_register()
@@ -71,8 +69,6 @@ public fw_oa_admin_itemselect(id, itemid)
 		display_menu(id, MENU_SLAP)
 	else if(itemid == admin_item[MENU_TEAM])
 		display_menu(id, MENU_TEAM)
-	else if(itemid == admin_item[MENU_SCREEN])
-		display_menu(id, MENU_SCREEN)
 }
 
 /*** MENU CMD  ***********************************************************************************/
@@ -112,16 +108,6 @@ public cmd_teammenu(id, level, cid)
 	return PLUGIN_HANDLED
 }
 
-public cmd_screenmenu(id, level, cid)
-{
-	if(!oa_cmd_access(id, cid, 0))
-		return PLUGIN_HANDLED
-
-	display_menu(id, MENU_SCREEN)
-	return PLUGIN_HANDLED
-}
-
-/*** Magic  **************************************************************************************/
 action_player(id, target, menu, option)
 {
 	switch(menu)
@@ -165,12 +151,6 @@ action_player(id, target, menu, option)
 				log_admin_to(id, target, "change team", "- team: %s", team_prefix[option+1])
 			}
 
-		}
-		case MENU_SCREEN:
-		{
-			server_cmd("sxe_screen #%d #%d", get_user_userid(target), get_user_userid(id))
-			oa_chat_color(id, target, "!g-sXe-Screen: !yScreenShot sacada a !t%s", g_name[target])
-			return 0
 		}
 	}
 	return 1
@@ -218,11 +198,6 @@ collect_player(id, player, menu, option, itemname[], maxlen)
 				return 1
 			}
 		}
-		case MENU_SCREEN:
-		{
-			copy(itemname, maxlen, g_name[player])
-			return 1
-		}
 	}
 	return 0
 }
@@ -260,7 +235,7 @@ show_menu_players(id, page=1)
 	get_players(players, count)
 	oldmenu_calculate_pages(maxpages, start, end, page, count, menu_option[g_current_menu[id]]?6:7)
 	
-	oldmenu_create("menu_players", "\y%s Menu: \r%d/%d",
+	oldmenu_create("menu_players", "\r%s Menu: %d/%d",
 	menu_name[g_current_menu[id]], page, maxpages)
 	
 	if(menu_option[g_current_menu[id]])
@@ -306,7 +281,7 @@ public menu_players(id, itemnum, value, page)
     
 	if(!is_user_connected(value) || get_user_userid(value) != g_menu_extradata[id][itemnum])
 	{
-		oa_chat_color(id, _, "!g-PlayersMenu: !yJugador invalido")
+		oa_chat_color(id, _, "!g-%s Menu: !yJugador invalido", menu_name[g_current_menu[id]])
 		show_menu_players(id, page)
 		return
 	}
