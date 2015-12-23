@@ -8,7 +8,7 @@
 #include <onlyarg>
 
 #define PLUGIN	"OA: Map Spawns Editor"
-#define VERSION	"1.0"
+#define VERSION	"1.1"
 #define AUTHOR	"iG_os&Destro"
 /**********************************************/
 

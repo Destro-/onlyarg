@@ -140,9 +140,6 @@ stock read_say(id)
 	
 	remove_quotes(msg)
 	oa_filter_print(msg, charsmax(msg))
-	replace_all(msg, charsmax(msg), "!g", "g")
-	replace_all(msg, charsmax(msg), "!y", "y")
-	replace_all(msg, charsmax(msg), "!t", "t")
 	trim(msg)
 
 	if(!msg[0]) return PLUGIN_HANDLED+1
